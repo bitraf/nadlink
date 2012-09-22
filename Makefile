@@ -1,0 +1,2 @@
+all: nadlink
+	sync
