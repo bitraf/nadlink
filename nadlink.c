@@ -125,6 +125,7 @@ static void send_command (int command)
 }
 
 #define NAD_POWER_TOGGLE 0x80
+#define NAD_TEST         0xCD
 #define NAD_VOLUME_UP    0x88
 #define NAD_VOLUME_DOWN  0x8C
 #define NAD_MUTE         0x94
@@ -229,6 +230,7 @@ repeat:
                   switch (buf)
                     {
                     case 'P': command = NAD_POWER_TOGGLE; break;
+                    case 'T': command = NAD_TEST; break;
                     case '+': command = NAD_VOLUME_UP; break;
                     case '-': command = NAD_VOLUME_DOWN; break;
                     case 'm': command = NAD_MUTE; break;
