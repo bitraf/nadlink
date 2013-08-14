@@ -1,0 +1,107 @@
+<html>
+  <head>
+    <title>Unofficial NAD Link protocol specification</title>
+  </head>
+  <body>
+    <h1>Unofficial NAD Link protocol specification</h1>
+    <p>This is a decription of how to use the NAD Link RCA connectors at the
+    back of most NAD equipment, using a PC parallell port.</p>
+    <p>The NAD Link uses a slightly modified version of the NEC remote control
+    protocol, where 0V represents <tt>pulse</tt>, and +5V represents <tt>flat</tt>.</p>
+    <h2>The NEC Receiver protocol</h2>
+    <p><small>Derived from <a
+        href='http://www.sbprojects.com/knowledge/ir/nec.htm'>sbprojects.com</a></small>.</p>
+    <h3>1. Preamble</h3>
+    <pre>
+  9000 &mu;s pulse
+  4500 &mu;s flat</pre>
+    <h3>2. Address</h3>
+    <p>The (8 bit) address is transferred using pulse distance encoding with the least
+    signficant bit going first over the wire.  Afterwards, the bitwise negation
+    is sent. <b>Note:</b> This is where NAD diverges slightly from the NEC spec.
+    More on this later.</p>
+    <p>One-bits are encoded like this:</p>
+    <pre>
+  560 &mu;s pulse
+ 1690 &mu;s flat</pre>
+    <p>Zero-bits are encoded like this:</p>
+    <pre>
+  560 &mu;s pulse
+  560 &mu;s flat</pre>
+    <p>Example: Assume the address is <tt>00110101</tt>.  In this case
+    <tt>00110101&nbsp;11001010</tt> is transmitted (space added for readability - not
+    a delay).  Sending the bitwise negation
+    after the actual address means that there are always 8 ones and 8 zeroes
+    being transmitted, so all addresses take the same amount ot time to tramsit,
+    despite the use of pulse distance encoding.</p>
+    <h3>3. Command</h3>
+    <p>The command is also 8 bits, and is transmitted in the same manner as
+    the address.  First directly, then inverted.</p>
+    <h3>4. Command terminator</h3>
+    <pre>
+  560 &mu;s pulse
+42020 &mu;s flat</pre>
+    <h3>5. Repeat</h3>
+    <p>Send zero or more of this to indicate that the remote control button is
+    being held down.</p>
+    <pre>
+ 9000 &mu;s pulse
+ 2250 &mu;s flat
+  560 &mu;s pulse
+98190 &mu;s flat</pre>
+    <p>(Total time: 110ms)</p>
+    <h3>Summary</h3>
+    <pre>
+PREAMBLE
+(address &gt;&gt; 0) &amp; 1
+(address &gt;&gt; 1) &amp; 1
+(address &gt;&gt; 2) &amp; 1
+(address &gt;&gt; 3) &amp; 1
+(address &gt;&gt; 4) &amp; 1
+(address &gt;&gt; 5) &amp; 1
+(address &gt;&gt; 6) &amp; 1
+(address &gt;&gt; 7) &amp; 1
+(~address &gt;&gt; 0) &amp; 1
+(~address &gt;&gt; 1) &amp; 1
+(~address &gt;&gt; 2) &amp; 1
+(~address &gt;&gt; 3) &amp; 1
+(~address &gt;&gt; 4) &amp; 1
+(~address &gt;&gt; 5) &amp; 1
+(~address &gt;&gt; 6) &amp; 1
+(~address &gt;&gt; 7) &amp; 1
+(data &gt;&gt; 0) &amp; 1
+(data &gt;&gt; 1) &amp; 1
+(data &gt;&gt; 2) &amp; 1
+(data &gt;&gt; 3) &amp; 1
+(data &gt;&gt; 4) &amp; 1
+(data &gt;&gt; 5) &amp; 1
+(data &gt;&gt; 6) &amp; 1
+(data &gt;&gt; 7) &amp; 1
+(~data &gt;&gt; 0) &amp; 1
+(~data &gt;&gt; 1) &amp; 1
+(~data &gt;&gt; 2) &amp; 1
+(~data &gt;&gt; 3) &amp; 1
+(~data &gt;&gt; 4) &amp; 1
+(~data &gt;&gt; 5) &amp; 1
+(~data &gt;&gt; 6) &amp; 1
+(~data &gt;&gt; 7) &amp; 1
+COMMAND TERMINATOR</pre>
+    <p>(Total time: 110ms)</p>
+    <h3>Differences in the NAD implementation</h3>
+    <p>NAD does not send exactly the inverted address as the second byte.
+    Instead, typically 1 or 2 bits are not inverted.  This is not a problem,
+    since it is included in the <tt>.ir</tt> files available at the NAD
+    website.</p>
+    <h2>NAD remote control codes</h2>
+    <p>At the time of writing, NAD publishes the codes for its remote controls
+    at <a
+      href='http://www.nadelectronics.com/software'>[nadelectronics.com]</a>.  I
+    have also mirrored the <a href='nadcodes.zip'>Creston remote controller
+      codes</a>, since I managed to reverse engineer the file format.  I also
+    made <a href='irparse.c'>C program to decode the files</a>, as well as a <a
+      href='nadlink.c'>C program to control a NAD 912 receiver via TCP</a></p>
+    <hr>
+    <p>By Morten Hustveit &lt;morten full-stop hustveit at gmail full-stop com&gt; May 2007</p>
+  </body>
+</html>
+
